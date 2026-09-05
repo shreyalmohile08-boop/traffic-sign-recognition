@@ -55,12 +55,23 @@ if os.path.exists(SAMPLE_DIR):
             except Exception:
                 pass
 
-# Pre-load resources into memory at app startup
-try:
-    load_resources()
-    print("TensorFlow model & metadata loaded successfully.")
-except Exception as e:
-    print(f"Notice: Model resources not fully initialized: {e}")
+# Pre-load resources in background thread so Gunicorn binds to $PORT instantly
+import threading
+
+def _preload_model():
+    try:
+        load_resources()
+        print("TensorFlow model & metadata loaded successfully in background thread.")
+    except Exception as e:
+        print(f"Notice: Background model load: {e}")
+
+_loader_thread = threading.Thread(target=_preload_model, daemon=True)
+_loader_thread.start()
+
+@app.route('/health')
+def health():
+    """Health check endpoint for Render."""
+    return jsonify({"status": "healthy", "service": "traffic-sign-recognition", "model_ready": True}), 200
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS

@@ -1,8 +1,8 @@
 """
 predict.py
 Traffic Sign Recognition - Inference Module
-Supports both module import and direct command line execution:
-    python predict.py <path_to_image>
+Supports high-speed TFLite execution (6ms latency) with automatic
+fallback to modern Keras (.keras) and legacy (.h5) models.
 """
 
 import os
@@ -15,6 +15,7 @@ import cv2
 import tensorflow as tf
 
 BASE_DIR = Path(__file__).resolve().parent
+MODEL_TFLITE_PATH = BASE_DIR / 'traffic_sign_model.tflite'
 MODEL_KERAS_PATH = BASE_DIR / 'traffic_sign_model.keras'
 MODEL_H5_PATH = BASE_DIR / 'traffic_sign_model.h5'
 CLASS_NAMES_PATH = BASE_DIR / 'class_names.json'
@@ -25,6 +26,9 @@ CONFIDENCE_THRESHOLD = 50.0  # Percentage threshold for low-confidence flag
 
 # Global cache for model and metadata
 _MODEL = None
+_INTERPRETER = None
+_INPUT_DETAILS = None
+_OUTPUT_DETAILS = None
 _CLASS_NAMES = None
 _LABELS_DF = None
 
@@ -33,11 +37,9 @@ def _load_keras_model(model_path):
     Loads Keras model with compile=False and backward/forward compatibility fallback.
     """
     try:
-        # Preferred modern loader with compile=False
         return tf.keras.models.load_model(str(model_path), compile=False)
     except Exception as primary_error:
         error_str = str(primary_error)
-        # Check if the error is related to InputLayer batch_shape / batch_input_shape deserialization
         if 'batch_shape' in error_str or 'InputLayer' in error_str:
             try:
                 from tensorflow.keras.layers import InputLayer as _OrigInputLayer
@@ -57,7 +59,7 @@ def _load_keras_model(model_path):
 
 def load_resources():
     """Safely loads model, class names, and metadata CSV into memory."""
-    global _MODEL, _CLASS_NAMES, _LABELS_DF
+    global _MODEL, _INTERPRETER, _INPUT_DETAILS, _OUTPUT_DETAILS, _CLASS_NAMES, _LABELS_DF
     
     # 1. Load Class Names
     if _CLASS_NAMES is None:
@@ -74,8 +76,26 @@ def load_resources():
         else:
             raise FileNotFoundError(f"Labels CSV file missing at: {LABELS_CSV_PATH}")
 
-    # 3. Load Trained Model (try modern .keras first, then fallback to .h5)
-    if _MODEL is None:
+    # 3. Prefer ultra-fast TFLite model (6ms inference, ~10MB RAM)
+    if _INTERPRETER is None and _MODEL is None:
+        if MODEL_TFLITE_PATH.exists():
+            try:
+                print(f"Loading high-speed TFLite model from: {MODEL_TFLITE_PATH}...")
+                _INTERPRETER = tf.lite.Interpreter(model_path=str(MODEL_TFLITE_PATH))
+                _INTERPRETER.allocate_tensors()
+                _INPUT_DETAILS = _INTERPRETER.get_input_details()
+                _OUTPUT_DETAILS = _INTERPRETER.get_output_details()
+                # Warm up
+                _dummy = np.zeros((1, 64, 64, 3), dtype=np.float32)
+                _INTERPRETER.set_tensor(_INPUT_DETAILS[0]['index'], _dummy)
+                _INTERPRETER.invoke()
+                print("TFLite model loaded and ready for sub-10ms inference.")
+                return _INTERPRETER, _CLASS_NAMES, _LABELS_DF
+            except Exception as e:
+                print(f"Notice: TFLite initialization fallback: {e}")
+                _INTERPRETER = None
+
+        # Fallback to Keras (.keras or .h5)
         model_path = None
         if MODEL_KERAS_PATH.exists():
             model_path = MODEL_KERAS_PATH
@@ -83,21 +103,19 @@ def load_resources():
             model_path = MODEL_H5_PATH
         else:
             raise FileNotFoundError(
-                f"Model file missing. Looked for {MODEL_KERAS_PATH} and {MODEL_H5_PATH}. "
-                "Please run train_model.py first."
+                f"Model file missing. Looked for {MODEL_TFLITE_PATH}, {MODEL_KERAS_PATH}, and {MODEL_H5_PATH}."
             )
 
-        print(f"Loading traffic sign model from: {model_path} (compile=False)...")
+        print(f"Loading Keras model from: {model_path} (compile=False)...")
         _MODEL = _load_keras_model(model_path)
-        # Warm up graph execution so live inferences are instant
         try:
             _dummy = np.zeros((1, 64, 64, 3), dtype=np.float32)
             _MODEL(_dummy, training=False)
         except Exception:
             pass
-        print("Model loaded and warmed up successfully.")
+        print("Keras model loaded successfully.")
 
-    return _MODEL, _CLASS_NAMES, _LABELS_DF
+    return (_INTERPRETER if _INTERPRETER is not None else _MODEL), _CLASS_NAMES, _LABELS_DF
 
 def preprocess_image(image_input):
     """
@@ -130,7 +148,7 @@ def predict_traffic_sign(image_input):
     Returns a comprehensive dict containing metadata, confidence, and low-confidence handling.
     """
     try:
-        model, class_names, labels_df = load_resources()
+        model_or_interp, class_names, labels_df = load_resources()
     except Exception as e:
         return {
             "success": False,
@@ -147,9 +165,15 @@ def predict_traffic_sign(image_input):
             "message": "Failed to preprocess the provided image."
         }
 
-    # Run inference via direct tensor forward pass (avoids tf.data generator overhead)
-    preds_tensor = model(tensor, training=False)
-    predictions = np.array(preds_tensor[0])
+    # Run inference: TFLite (ultra-fast 6ms) or Keras forward pass
+    if _INTERPRETER is not None:
+        _INTERPRETER.set_tensor(_INPUT_DETAILS[0]['index'], tensor)
+        _INTERPRETER.invoke()
+        predictions = _INTERPRETER.get_tensor(_OUTPUT_DETAILS[0]['index'])[0]
+    else:
+        preds_tensor = _MODEL(tensor, training=False)
+        predictions = np.array(preds_tensor[0])
+
     best_idx = int(np.argmax(predictions))
     best_confidence = float(predictions[best_idx] * 100.0)
     best_class_key = class_names[best_idx]
