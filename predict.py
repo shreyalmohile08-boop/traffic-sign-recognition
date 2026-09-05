@@ -89,7 +89,13 @@ def load_resources():
 
         print(f"Loading traffic sign model from: {model_path} (compile=False)...")
         _MODEL = _load_keras_model(model_path)
-        print("Model loaded successfully.")
+        # Warm up graph execution so live inferences are instant
+        try:
+            _dummy = np.zeros((1, 64, 64, 3), dtype=np.float32)
+            _MODEL(_dummy, training=False)
+        except Exception:
+            pass
+        print("Model loaded and warmed up successfully.")
 
     return _MODEL, _CLASS_NAMES, _LABELS_DF
 
@@ -141,8 +147,9 @@ def predict_traffic_sign(image_input):
             "message": "Failed to preprocess the provided image."
         }
 
-    # Run inference
-    predictions = model.predict(tensor, verbose=0)[0]
+    # Run inference via direct tensor forward pass (avoids tf.data generator overhead)
+    preds_tensor = model(tensor, training=False)
+    predictions = np.array(preds_tensor[0])
     best_idx = int(np.argmax(predictions))
     best_confidence = float(predictions[best_idx] * 100.0)
     best_class_key = class_names[best_idx]
