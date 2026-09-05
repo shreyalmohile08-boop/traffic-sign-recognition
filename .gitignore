@@ -1,16 +1,30 @@
+# Python
 __pycache__/
-*.pyc
-.venv/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
 venv/
+.venv/
 .env
-.gradio/
 
+# Cache & Gradio
+.gradio/
+.pytest_cache/
+
+# Runtime Uploads & Prediction Logs
+static/uploads/*
+!static/uploads/.gitkeep
+prediction_history.json
+
+# Large Raw Datasets (not needed for deployment)
 dataset/
 traffic_sign_dataset/
-sample_test_images/
 
+# Nested duplicate folder
 traffic_sign_recogination/
 
-static/uploads/
-
-Meta/.~lock*
+# Lock files
+*.ods#
+.~lock*

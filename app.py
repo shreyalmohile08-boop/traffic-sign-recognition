@@ -107,8 +107,10 @@ def about():
 
 @app.route('/sample_test_images/<path:filename>')
 def serve_sample_image(filename):
-    """Serves test images from sample_test_images directory."""
-    return send_from_directory(SAMPLE_DIR, filename)
+    """Serves test images from sample_test_images directory or static fallback."""
+    if os.path.exists(os.path.join(SAMPLE_DIR, filename)):
+        return send_from_directory(SAMPLE_DIR, filename)
+    return send_from_directory(SAMPLES_STATIC, filename)
 
 # =========================================================================
 # Prediction API

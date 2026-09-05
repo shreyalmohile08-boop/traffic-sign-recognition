@@ -8,16 +8,17 @@ Supports both module import and direct command line execution:
 import os
 import sys
 import json
+from pathlib import Path
 import numpy as np
 import pandas as pd
 import cv2
 import tensorflow as tf
-from tensorflow.keras.models import load_model
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, 'traffic_sign_model.h5')
-CLASS_NAMES_PATH = os.path.join(BASE_DIR, 'class_names.json')
-LABELS_CSV_PATH = os.path.join(BASE_DIR, 'traffic_sign_labels.csv')
+BASE_DIR = Path(__file__).resolve().parent
+MODEL_KERAS_PATH = BASE_DIR / 'traffic_sign_model.keras'
+MODEL_H5_PATH = BASE_DIR / 'traffic_sign_model.h5'
+CLASS_NAMES_PATH = BASE_DIR / 'class_names.json'
+LABELS_CSV_PATH = BASE_DIR / 'traffic_sign_labels.csv'
 
 IMG_SIZE = (64, 64)
 CONFIDENCE_THRESHOLD = 50.0  # Percentage threshold for low-confidence flag
@@ -27,31 +28,68 @@ _MODEL = None
 _CLASS_NAMES = None
 _LABELS_DF = None
 
+def _load_keras_model(model_path):
+    """
+    Loads Keras model with compile=False and backward/forward compatibility fallback.
+    """
+    try:
+        # Preferred modern loader with compile=False
+        return tf.keras.models.load_model(str(model_path), compile=False)
+    except Exception as primary_error:
+        error_str = str(primary_error)
+        # Check if the error is related to InputLayer batch_shape / batch_input_shape deserialization
+        if 'batch_shape' in error_str or 'InputLayer' in error_str:
+            try:
+                from tensorflow.keras.layers import InputLayer as _OrigInputLayer
+                class PatchedInputLayer(_OrigInputLayer):
+                    def __init__(self, *args, **kwargs):
+                        if 'batch_shape' in kwargs and 'batch_input_shape' not in kwargs:
+                            kwargs['batch_input_shape'] = kwargs.pop('batch_shape')
+                        super().__init__(*args, **kwargs)
+                return tf.keras.models.load_model(
+                    str(model_path), 
+                    compile=False, 
+                    custom_objects={'InputLayer': PatchedInputLayer}
+                )
+            except Exception:
+                pass
+        raise primary_error
+
 def load_resources():
     """Safely loads model, class names, and metadata CSV into memory."""
     global _MODEL, _CLASS_NAMES, _LABELS_DF
     
     # 1. Load Class Names
     if _CLASS_NAMES is None:
-        if os.path.exists(CLASS_NAMES_PATH):
-            with open(CLASS_NAMES_PATH, 'r') as f:
+        if CLASS_NAMES_PATH.exists():
+            with open(CLASS_NAMES_PATH, 'r', encoding='utf-8') as f:
                 _CLASS_NAMES = json.load(f)
         else:
             raise FileNotFoundError(f"Class names file missing at: {CLASS_NAMES_PATH}")
 
     # 2. Load Metadata CSV
     if _LABELS_DF is None:
-        if os.path.exists(LABELS_CSV_PATH):
+        if LABELS_CSV_PATH.exists():
             _LABELS_DF = pd.read_csv(LABELS_CSV_PATH)
         else:
             raise FileNotFoundError(f"Labels CSV file missing at: {LABELS_CSV_PATH}")
 
-    # 3. Load Trained Model
+    # 3. Load Trained Model (try modern .keras first, then fallback to .h5)
     if _MODEL is None:
-        if os.path.exists(MODEL_PATH):
-            _MODEL = load_model(MODEL_PATH)
+        model_path = None
+        if MODEL_KERAS_PATH.exists():
+            model_path = MODEL_KERAS_PATH
+        elif MODEL_H5_PATH.exists():
+            model_path = MODEL_H5_PATH
         else:
-            raise FileNotFoundError(f"Model file missing at: {MODEL_PATH}. Please run train_model.py first.")
+            raise FileNotFoundError(
+                f"Model file missing. Looked for {MODEL_KERAS_PATH} and {MODEL_H5_PATH}. "
+                "Please run train_model.py first."
+            )
+
+        print(f"Loading traffic sign model from: {model_path} (compile=False)...")
+        _MODEL = _load_keras_model(model_path)
+        print("Model loaded successfully.")
 
     return _MODEL, _CLASS_NAMES, _LABELS_DF
 
@@ -59,21 +97,20 @@ def preprocess_image(image_input):
     """
     Accepts a filepath, numpy array, or bytes and outputs a (1, 64, 64, 3) float32 array.
     """
-    if isinstance(image_input, str):
-        if not os.path.exists(image_input):
+    if isinstance(image_input, (str, Path)):
+        path_obj = Path(image_input)
+        if not path_obj.exists():
             raise FileNotFoundError(f"Image not found at: {image_input}")
-        img = cv2.imread(image_input)
+        img = cv2.imread(str(path_obj))
         if img is None:
             raise ValueError(f"Unable to read image file at: {image_input}")
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     elif isinstance(image_input, np.ndarray):
         img = image_input.copy()
-        # If received in BGR or grayscale, convert
         if len(img.shape) == 2:
             img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
         elif len(img.shape) == 3 and img.shape[2] == 4:
             img = cv2.cvtColor(img, cv2.COLOR_RGBA2RGB)
-        # Note: if it's already RGB (like from PIL or Gradio/webcam), caller should ensure RGB.
     else:
         raise TypeError("Unsupported image input type. Provide filepath or numpy array.")
 
@@ -111,7 +148,6 @@ def predict_traffic_sign(image_input):
     best_class_key = class_names[best_idx]
 
     # Retrieve metadata from traffic_sign_labels.csv
-    # Matching either by sign_id (best_idx) or sign_name
     row = None
     if best_idx < len(labels_df):
         row = labels_df.iloc[best_idx]
@@ -173,11 +209,10 @@ def predict_traffic_sign(image_input):
 
 def main():
     if len(sys.argv) < 2:
-        # If no arguments provided, test on a sample image
-        sample_img = os.path.join(BASE_DIR, 'sample_test_images', 'stop.png')
-        if os.path.exists(sample_img):
+        sample_img = BASE_DIR / 'sample_test_images' / 'stop.png'
+        if sample_img.exists():
             print(f"No image argument passed. Testing on default sample: {sample_img}")
-            res = predict_traffic_sign(sample_img)
+            res = predict_traffic_sign(str(sample_img))
             print(json.dumps(res, indent=2))
         else:
             print("Usage: python predict.py <path_to_image>")
