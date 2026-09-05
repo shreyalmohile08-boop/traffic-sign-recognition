@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About System & Architecture | TrafficSign.AI</title>
+  
+  <!-- Google Fonts: Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a href="/" class="brand">
+        <div class="brand-icon">
+          <i class="fa-solid fa-traffic-light"></i>
+        </div>
+        <div class="brand-text">
+          <h1>TrafficSign<span style="color:#6366f1">.AI</span></h1>
+          <span>Project Overview</span>
+        </div>
+      </a>
+      
+      <ul class="nav-links">
+        <li><a href="/" class="nav-link"><i class="fa-solid fa-crosshairs"></i> Recognition</a></li>
+        <li><a href="/dashboard" class="nav-link"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
+        <li><a href="/about" class="nav-link active"><i class="fa-solid fa-circle-info"></i> About</a></li>
+      </ul>
+      
+      <div class="status-badge">
+        <span class="status-dot"></span>
+        <span>Documentation</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="container" style="padding-top: 36px; max-width: 1060px;">
+    
+    <!-- Hero / Title -->
+    <header style="margin-bottom: 36px;">
+      <div class="hero-pill">
+        <i class="fa-solid fa-award"></i> College Hackathon Ready Demonstration
+      </div>
+      <h1 style="font-size: 2.5rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 12px;">About TrafficSign.AI</h1>
+      <p style="font-size: 1.15rem; color: var(--text-muted);">An end-to-end intelligent road safety platform providing instant traffic sign classification, context awareness, and driver guidance via Deep Convolutional Neural Networks.</p>
+    </header>
+
+    <!-- Architecture Section -->
+    <div class="glass-card" style="margin-bottom: 28px;">
+      <h2 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 16px; display:flex; align-items:center; gap:10px;">
+        <i class="fa-solid fa-network-wired" style="color:var(--primary);"></i> CNN Model Architecture Pipeline
+      </h2>
+      <p style="color: var(--text-muted); margin-bottom: 20px;">
+        The system employs a multi-stage Deep Convolutional Neural Network designed for spatial feature invariance, lighting resilience, and high-speed CPU/GPU inference.
+      </p>
+
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <div class="meta-chip" style="text-align:left; padding:16px;">
+          <span style="color:#818cf8; font-weight:700;">Stage 1: Input & Augmentation</span>
+          <p style="font-size:0.85rem; color:var(--text-muted); margin-top:6px;">64×64×3 RGB normalization, RandomRotation (±8°), RandomZoom (±10%), RandomTranslation (±8%).</p>
+        </div>
+
+        <div class="meta-chip" style="text-align:left; padding:16px;">
+          <span style="color:#06b6d4; font-weight:700;">Stage 2: Feature Hierarchy</span>
+          <p style="font-size:0.85rem; color:var(--text-muted); margin-top:6px;">3 Sequential Conv Blocks: 32 → 64 → 128 filters with BatchNormalization, ReLU, 2×2 MaxPool, and Dropout (0.25–0.35).</p>
+        </div>
+
+        <div class="meta-chip" style="text-align:left; padding:16px;">
+          <span style="color:#10b981; font-weight:700;">Stage 3: Dense Classification</span>
+          <p style="font-size:0.85rem; color:var(--text-muted); margin-top:6px;">Flatten layer feeding into 256-unit Dense layer with ReLU, BatchNorm, 50% Dropout, and 20-way Softmax output.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tech Stack Grid -->
+    <div class="glass-card" style="margin-bottom: 28px;">
+      <h2 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 16px; display:flex; align-items:center; gap:10px;">
+        <i class="fa-solid fa-microchip" style="color:var(--accent-cyan);"></i> Technology Stack
+      </h2>
+
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px;">
+        <div class="meta-chip" style="padding:16px;">
+          <i class="fa-brands fa-python" style="font-size:2rem; color:#38bdf8; margin-bottom:8px; display:block;"></i>
+          <strong>Python 3.10+</strong>
+          <span style="font-size:0.75rem; color:var(--text-dim); margin-top:4px;">Core Runtime</span>
+        </div>
+
+        <div class="meta-chip" style="padding:16px;">
+          <i class="fa-solid fa-brain" style="font-size:2rem; color:#f97316; margin-bottom:8px; display:block;"></i>
+          <strong>TensorFlow 2.x</strong>
+          <span style="font-size:0.75rem; color:var(--text-dim); margin-top:4px;">Keras CNN Architecture</span>
+        </div>
+
+        <div class="meta-chip" style="padding:16px;">
+          <i class="fa-solid fa-eye" style="font-size:2rem; color:#10b981; margin-bottom:8px; display:block;"></i>
+          <strong>OpenCV</strong>
+          <span style="font-size:0.75rem; color:var(--text-dim); margin-top:4px;">Computer Vision Prep</span>
+        </div>
+
+        <div class="meta-chip" style="padding:16px;">
+          <i class="fa-solid fa-server" style="font-size:2rem; color:#a855f7; margin-bottom:8px; display:block;"></i>
+          <strong>Flask 3.x</strong>
+          <span style="font-size:0.75rem; color:var(--text-dim); margin-top:4px;">REST API Backend</span>
+        </div>
+
+        <div class="meta-chip" style="padding:16px;">
+          <i class="fa-solid fa-chart-column" style="font-size:2rem; color:#f59e0b; margin-bottom:8px; display:block;"></i>
+          <strong>Chart.js</strong>
+          <span style="font-size:0.75rem; color:var(--text-dim); margin-top:4px;">Interactive Metrics</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 20 Classes Table -->
+    <div class="table-card">
+      <h2 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 16px; display:flex; align-items:center; gap:10px;">
+        <i class="fa-solid fa-table-list" style="color:var(--accent-amber);"></i> Complete 20-Class Traffic Sign Taxonomy
+      </h2>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Sign ID</th>
+            <th>Sign Name</th>
+            <th>Category</th>
+            <th>Shape</th>
+            <th>Color</th>
+            <th>Speed Limit</th>
+            <th>Action Summary</th>
+          </tr>
+        </thead>
+        <tbody id="about-taxonomy-table">
+          <!-- Populated from traffic_sign_labels.csv dynamically -->
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>© 2026 TrafficSign.AI • College Hackathon System Architecture & Documentation</p>
+    </div>
+  </footer>
+
+  <script>
+    // Fetch and populate taxonomy table on about page
+    fetch('/api/stats')
+      .then(res => res.json())
+      .then(data => {
+        const tbody = document.getElementById('about-taxonomy-table');
+        if (data.labels && tbody) {
+          tbody.innerHTML = '';
+          data.labels.forEach((item, idx) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td><strong>#${item.sign_id}</strong></td>
+              <td>${item.sign_name}</td>
+              <td><span class="category-badge badge-${item.category.toLowerCase()}">${item.category}</span></td>
+              <td>${item.shape}</td>
+              <td>${item.color}</td>
+              <td>${item.speed_limit > 0 ? item.speed_limit + ' km/h' : '—'}</td>
+              <td style="color:#a5b4fc;">${item.recommended_action}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+      })
+      .catch(err => console.error("Error loading taxonomy:", err));
+  </script>
+</body>
+</html>

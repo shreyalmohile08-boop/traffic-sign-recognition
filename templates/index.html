@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Traffic Sign Recognition System | AI Road Safety</title>
+  <meta name="description" content="State-of-the-art Deep Learning Traffic Sign Recognition System using CNNs, OpenCV and Flask.">
+  
+  <!-- Google Fonts: Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a href="/" class="brand">
+        <div class="brand-icon">
+          <i class="fa-solid fa-traffic-light"></i>
+        </div>
+        <div class="brand-text">
+          <h1>TrafficSign<span style="color:#6366f1">.AI</span></h1>
+          <span>Deep Learning Core</span>
+        </div>
+      </a>
+      
+      <ul class="nav-links">
+        <li><a href="/" class="nav-link active"><i class="fa-solid fa-crosshairs"></i> Recognition</a></li>
+        <li><a href="/dashboard" class="nav-link"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
+        <li><a href="/about" class="nav-link"><i class="fa-solid fa-circle-info"></i> About</a></li>
+      </ul>
+      
+      <div class="status-badge">
+        <span class="status-dot"></span>
+        <span>CNN Model v1.0 Ready</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="container">
+    <!-- Hero Header -->
+    <header class="hero">
+      <div class="hero-pill">
+        <i class="fa-solid fa-brain"></i> Advanced Computer Vision Architecture
+      </div>
+      <h1>Traffic Sign Recognition</h1>
+      <p>Recognize traffic signs instantly using AI</p>
+    </header>
+
+    <!-- Quick Test Samples Strip -->
+    <section class="quick-samples">
+      <div class="section-label">
+        <i class="fa-solid fa-bolt"></i> Quick-Test Benchmark Samples (Click to test instantly)
+      </div>
+      <div class="sample-pills" id="sample-pills-container">
+        <!-- Injected via JavaScript -->
+        <div class="sample-card" data-sample="stop.png">
+          <img src="/static/img/samples/stop.png" onerror="this.src='/static/uploads/default.png'" alt="Stop">
+          <span>Stop</span>
+        </div>
+        <div class="sample-card" data-sample="speed_limit_50.png">
+          <img src="/static/img/samples/speed_limit_50.png" onerror="this.src='/static/uploads/default.png'" alt="Speed Limit 50">
+          <span>Speed Limit 50</span>
+        </div>
+        <div class="sample-card" data-sample="no_entry.png">
+          <img src="/static/img/samples/no_entry.png" onerror="this.src='/static/uploads/default.png'" alt="No Entry">
+          <span>No Entry</span>
+        </div>
+        <div class="sample-card" data-sample="pedestrian_crossing.png">
+          <img src="/static/img/samples/pedestrian_crossing.png" onerror="this.src='/static/uploads/default.png'" alt="Pedestrian">
+          <span>Pedestrian Crossing</span>
+        </div>
+        <div class="sample-card" data-sample="turn_right.png">
+          <img src="/static/img/samples/turn_right.png" onerror="this.src='/static/uploads/default.png'" alt="Turn Right">
+          <span>Turn Right</span>
+        </div>
+        <div class="sample-card" data-sample="parking.png">
+          <img src="/static/img/samples/parking.png" onerror="this.src='/static/uploads/default.png'" alt="Parking">
+          <span>Parking</span>
+        </div>
+        <div class="sample-card" data-sample="hospital.png">
+          <img src="/static/img/samples/hospital.png" onerror="this.src='/static/uploads/default.png'" alt="Hospital">
+          <span>Hospital</span>
+        </div>
+        <div class="sample-card" data-sample="speed_breaker.png">
+          <img src="/static/img/samples/speed_breaker.png" onerror="this.src='/static/uploads/default.png'" alt="Speed Breaker">
+          <span>Speed Breaker</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Recognition Grid -->
+    <div class="recognition-grid">
+      
+      <!-- Left Column: Input & Capture Panel -->
+      <div class="glass-card">
+        <!-- Input Method Tabs -->
+        <div class="tabs-header">
+          <button class="tab-btn active" id="tab-upload">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Image Upload
+          </button>
+          <button class="tab-btn" id="tab-webcam">
+            <i class="fa-solid fa-camera"></i> Live Camera
+          </button>
+        </div>
+
+        <!-- Tab 1: Upload Dropzone -->
+        <div class="upload-panel" id="panel-upload">
+          <div class="dropzone" id="dropzone">
+            <div class="upload-icon">
+              <i class="fa-solid fa-image"></i>
+            </div>
+            <h3>Drag & Drop sign image here</h3>
+            <p>Supports PNG, JPG, JPEG, WEBP files up to 10MB</p>
+            <button type="button" class="btn-secondary" id="browse-btn">
+              <i class="fa-solid fa-folder-open"></i> Browse Files
+            </button>
+            <input type="file" id="file-input" class="file-input" accept="image/*">
+          </div>
+        </div>
+
+        <!-- Tab 2: Webcam Panel -->
+        <div class="webcam-panel" id="panel-webcam">
+          <div class="video-wrapper">
+            <video id="webcam-feed" autoplay playsinline></video>
+            <canvas id="webcam-canvas" style="display:none;"></canvas>
+          </div>
+          <div class="webcam-controls">
+            <button type="button" class="btn-secondary" id="start-cam-btn" style="flex:1;">
+              <i class="fa-solid fa-video"></i> Start Camera
+            </button>
+            <button type="button" class="btn-secondary" id="snap-cam-btn" style="flex:1;" disabled>
+              <i class="fa-solid fa-camera-retro"></i> Capture Frame
+            </button>
+          </div>
+        </div>
+
+        <!-- Selected Image Preview Box (Appears when image selected) -->
+        <div class="preview-container" id="preview-container">
+          <img src="" alt="Selected Traffic Sign" class="preview-img" id="preview-img">
+          <div class="preview-overlay">
+            <button type="button" class="clear-btn" id="clear-btn" title="Clear image">
+              <i class="fa-solid fa-xmark"></i> Clear
+            </button>
+          </div>
+          <!-- Scanning line animation -->
+          <div class="scanner-beam" id="scanner-beam"></div>
+        </div>
+
+        <!-- Submit Recognition Button -->
+        <button type="button" class="btn-primary" id="predict-btn" disabled>
+          <i class="fa-solid fa-wand-magic-sparkles"></i> 
+          <span id="predict-btn-text">Recognize Sign</span>
+        </button>
+      </div>
+
+      <!-- Right Column: Inference Result Panel -->
+      <div class="glass-card" id="result-card">
+        <!-- Empty State Placeholder -->
+        <div class="result-placeholder" id="result-placeholder">
+          <i class="fa-solid fa-traffic-light"></i>
+          <h3>Awaiting Traffic Sign</h3>
+          <p>Upload an image or snap a photo from your camera to classify sign category, rules, and recommended driving actions.</p>
+        </div>
+
+        <!-- Active Result Display -->
+        <div class="result-display" id="result-display">
+          
+          <!-- Low Confidence Warning Banner -->
+          <div class="low-conf-alert" id="low-conf-alert">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <div>
+              <strong>Low Confidence Warning</strong>
+              <p id="low-conf-msg">Unable to confidently recognize this traffic sign. Please upload a clearer image.</p>
+            </div>
+          </div>
+
+          <!-- Detected Sign Header -->
+          <div class="result-header">
+            <div class="detected-sign-title">
+              <div class="sign-icon-bubble" id="res-icon">🛑</div>
+              <div class="sign-title-text">
+                <span style="font-size:0.75rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.05em;">Detected Sign</span>
+                <h2 id="res-sign-name">Stop</h2>
+                <span class="category-badge badge-regulatory" id="res-category">Regulatory</span>
+              </div>
+            </div>
+
+            <!-- Confidence Metric -->
+            <div class="confidence-box">
+              <div class="confidence-val" id="res-confidence">99.8%</div>
+              <div class="confidence-lbl">Confidence</div>
+            </div>
+          </div>
+
+          <!-- Recommended Driving Action Callout -->
+          <div class="action-box">
+            <div class="action-icon">
+              <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <div class="action-text">
+              <h4>Recommended Action</h4>
+              <p id="res-action">Stop completely before proceeding.</p>
+            </div>
+          </div>
+
+          <!-- Metadata Chips (Shape, Color, Speed Limit) -->
+          <div class="meta-grid">
+            <div class="meta-chip">
+              <span>Sign Shape</span>
+              <strong id="res-shape">Octagon</strong>
+            </div>
+            <div class="meta-chip">
+              <span>Color</span>
+              <strong id="res-color">Red</strong>
+            </div>
+            <div class="meta-chip">
+              <span>Speed Limit</span>
+              <strong id="res-speed">None</strong>
+            </div>
+          </div>
+
+          <!-- Meaning & Explanation -->
+          <div class="meaning-box">
+            <h4><i class="fa-solid fa-circle-info"></i> Meaning & Purpose</h4>
+            <p id="res-meaning">Stop the vehicle completely and yield the right of way to other traffic before proceeding safely.</p>
+          </div>
+
+          <!-- Alternative Probability Breakdown (Top 5) -->
+          <div class="top-preds-container">
+            <div class="top-preds-title">
+              <i class="fa-solid fa-chart-simple"></i> Class Probability Distribution (Top Predictions)
+            </div>
+            <div id="top-preds-list">
+              <!-- Dynamically populated via JS -->
+            </div>
+          </div>
+
+          <!-- Audio Voice Playback -->
+          <div class="audio-action-row">
+            <button type="button" class="btn-audio" id="speak-btn">
+              <i class="fa-solid fa-volume-high"></i> Announce Sign (Voice)
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>© 2026 TrafficSign.AI • Built with Python, TensorFlow CNN, and Flask for Advanced Driver Assistance Systems (ADAS).</p>
+    </div>
+  </footer>
+
+  <!-- Main JavaScript -->
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

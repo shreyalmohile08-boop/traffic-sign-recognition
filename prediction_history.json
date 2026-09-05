@@ -1,0 +1,47 @@
+[
+  {
+    "id": "e0b175f5",
+    "timestamp": "2026-09-05T21:10:44.398382",
+    "sign_name": "Stop",
+    "category": "Regulatory",
+    "confidence": 99.99,
+    "recommended_action": "Stop completely",
+    "image_url": "/static/uploads/1788622843_267a00_stop.png"
+  },
+  {
+    "id": "d2087660",
+    "timestamp": "2026-09-05T21:10:57.494061",
+    "sign_name": "Speed Limit 50",
+    "category": "Regulatory",
+    "confidence": 94.78,
+    "recommended_action": "Maintain speed below 50 km/h",
+    "image_url": "/static/uploads/1788622857_038c61_speed_limit_50.png"
+  },
+  {
+    "id": "0f8fb697",
+    "timestamp": "2026-09-05T21:13:46.198054",
+    "sign_name": "Stop",
+    "category": "Regulatory",
+    "confidence": 99.99,
+    "recommended_action": "Stop completely",
+    "image_url": "/static/uploads/1788623024_f9ca31_stop.png"
+  },
+  {
+    "id": "7efedea0",
+    "timestamp": "2026-09-05T21:15:51.080748",
+    "sign_name": "Stop",
+    "category": "Regulatory",
+    "confidence": 85.69,
+    "recommended_action": "Stop completely",
+    "image_url": "/static/uploads/webcam_1788623140_685a78.jpg"
+  },
+  {
+    "id": "05e73db9",
+    "timestamp": "2026-09-05T21:17:30.256721",
+    "sign_name": "No Entry",
+    "category": "Prohibitory",
+    "confidence": 99.99,
+    "recommended_action": "Do not enter",
+    "image_url": "/static/uploads/1788623249_8c775a_no_entry.png"
+  }
+]

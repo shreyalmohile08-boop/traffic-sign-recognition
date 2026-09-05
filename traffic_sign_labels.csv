@@ -1,0 +1,21 @@
+sign_id,sign_name,category,shape,color,speed_limit,description,recommended_action
+0,Stop,Regulatory,Octagon,Red,0,Stop the vehicle,Stop completely
+1,No Entry,Prohibitory,Circle,Red,0,Entry prohibited,Do not enter
+2,Speed Limit 30,Regulatory,Circle,Red/White,30,Maximum speed 30 km/h,Maintain speed below 30 km/h
+3,Speed Limit 50,Regulatory,Circle,Red/White,50,Maximum speed 50 km/h,Maintain speed below 50 km/h
+4,Speed Limit 60,Regulatory,Circle,Red/White,60,Maximum speed 60 km/h,Maintain speed below 60 km/h
+5,Speed Limit 80,Regulatory,Circle,Red/White,80,Maximum speed 80 km/h,Maintain speed below 80 km/h
+6,Speed Limit 100,Regulatory,Circle,Red/White,100,Maximum speed 100 km/h,Maintain speed below 100 km/h
+7,Speed Limit 120,Regulatory,Circle,Red/White,120,Maximum speed 120 km/h,Maintain speed below 120 km/h
+8,No Overtaking,Prohibitory,Circle,Red/White,0,Overtaking prohibited,Do not overtake
+9,No Horn,Prohibitory,Circle,Red,0,Horn prohibited,Do not use horn
+10,Turn Left,Mandatory,Circle,Blue,0,Turn left,Turn left
+11,Turn Right,Mandatory,Circle,Blue,0,Turn right,Turn right
+12,Straight Ahead,Mandatory,Circle,Blue,0,Continue straight,Continue straight
+13,Pedestrian Crossing,Warning,Triangle,Red/White,0,Pedestrian crossing ahead,Slow down and watch for pedestrians
+14,School Ahead,Warning,Triangle,Red/White,0,School zone ahead,Slow down
+15,Slippery Road,Warning,Triangle,Red/White,0,Slippery road ahead,Reduce speed
+16,Railway Crossing,Warning,Triangle,Red/White,0,Railway crossing ahead,Slow down and check for trains
+17,Speed Breaker,Warning,Triangle,Red/White,0,Speed breaker ahead,Slow down
+18,Hospital,Informational,Rectangle,Blue,0,Hospital nearby,Drive carefully
+19,Parking,Informational,Rectangle,Blue,0,Parking area,Parking available

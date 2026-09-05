@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+.gradio/
+
+dataset/
+traffic_sign_dataset/
+sample_test_images/
+
+traffic_sign_recogination/
+
+static/uploads/
+
+Meta/.~lock*

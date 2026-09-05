@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Model Analytics & System Dashboard | TrafficSign.AI</title>
+  
+  <!-- Google Fonts: Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a href="/" class="brand">
+        <div class="brand-icon">
+          <i class="fa-solid fa-traffic-light"></i>
+        </div>
+        <div class="brand-text">
+          <h1>TrafficSign<span style="color:#6366f1">.AI</span></h1>
+          <span>Analytics Suite</span>
+        </div>
+      </a>
+      
+      <ul class="nav-links">
+        <li><a href="/" class="nav-link"><i class="fa-solid fa-crosshairs"></i> Recognition</a></li>
+        <li><a href="/dashboard" class="nav-link active"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
+        <li><a href="/about" class="nav-link"><i class="fa-solid fa-circle-info"></i> About</a></li>
+      </ul>
+      
+      <div class="status-badge">
+        <span class="status-dot"></span>
+        <span>Telemetry Live</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="container" style="padding-top: 32px;">
+    <!-- Dashboard Header -->
+    <header style="margin-bottom: 28px;">
+      <h1 style="font-size: 2.2rem; font-weight: 800; letter-spacing:-0.02em;">Model Performance & Telemetry</h1>
+      <p style="color: var(--text-muted);">Real-time monitoring of CNN classifier metrics, loss/accuracy curves, and historical detection records.</p>
+    </header>
+
+    <!-- 4 KPI Stat Cards -->
+    <div class="dashboard-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon indigo">
+          <i class="fa-solid fa-shapes"></i>
+        </div>
+        <div class="kpi-content">
+          <h4>Total Classes</h4>
+          <h2 id="kpi-classes">20 Classes</h2>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon emerald">
+          <i class="fa-solid fa-bullseye"></i>
+        </div>
+        <div class="kpi-content">
+          <h4>Model Test Accuracy</h4>
+          <h2 id="kpi-accuracy">95.66%</h2>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon cyan">
+          <i class="fa-solid fa-images"></i>
+        </div>
+        <div class="kpi-content">
+          <h4>Test Images Evaluated</h4>
+          <h2 id="kpi-test-count">738 Samples</h2>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon amber">
+          <i class="fa-solid fa-bolt"></i>
+        </div>
+        <div class="kpi-content">
+          <h4>Total Inferences</h4>
+          <h2 id="kpi-total-preds">0</h2>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row: Training & Validation Accuracy & Loss -->
+    <div class="charts-row">
+      <!-- Accuracy Curve Chart -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3><i class="fa-solid fa-chart-line" style="color:#6366f1;"></i> Training vs. Validation Accuracy</h3>
+          <span style="font-size:0.8rem; color:var(--text-dim);">10 Epochs</span>
+        </div>
+        <div class="chart-canvas-wrapper">
+          <canvas id="accuracyChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Loss Curve Chart -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3><i class="fa-solid fa-wave-square" style="color:#f43f5e;"></i> Training vs. Validation Loss</h3>
+          <span style="font-size:0.8rem; color:var(--text-dim);">Cross-Entropy</span>
+        </div>
+        <div class="chart-canvas-wrapper">
+          <canvas id="lossChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Category Distribution and Top Detected Row -->
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3><i class="fa-solid fa-chart-pie" style="color:#06b6d4;"></i> Most Frequently Detected Signs</h3>
+        </div>
+        <div class="chart-canvas-wrapper">
+          <canvas id="frequencyChart"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3><i class="fa-solid fa-layer-group" style="color:#10b981;"></i> Sign Category Distribution</h3>
+        </div>
+        <div class="chart-canvas-wrapper">
+          <canvas id="categoryChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Prediction History Table -->
+    <div class="table-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+        <h3 style="font-size:1.2rem; font-weight:700;"><i class="fa-solid fa-clock-rotate-left"></i> Recent Prediction History</h3>
+        <button type="button" class="btn-secondary" id="refresh-history-btn" style="padding:6px 12px; font-size:0.85rem;">
+          <i class="fa-solid fa-rotate-right"></i> Refresh
+        </button>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Preview</th>
+            <th>Detected Sign</th>
+            <th>Category</th>
+            <th>Confidence</th>
+            <th>Recommended Action</th>
+          </tr>
+        </thead>
+        <tbody id="history-table-body">
+          <tr>
+            <td colspan="6" style="text-align:center; color:var(--text-dim); padding:24px;">No predictions logged yet. Run a prediction on the Recognition page!</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Interactive 20-Class Dataset Explorer -->
+    <div class="table-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+        <h3 style="font-size:1.2rem; font-weight:700;"><i class="fa-solid fa-book-bookmark"></i> 20-Class Traffic Sign Reference Library</h3>
+        <div class="filter-bar" style="margin-bottom:0;" id="catalog-filters">
+          <button class="filter-btn active" data-category="all">All (20)</button>
+          <button class="filter-btn" data-category="Regulatory">Regulatory</button>
+          <button class="filter-btn" data-category="Prohibitory">Prohibitory</button>
+          <button class="filter-btn" data-category="Mandatory">Mandatory</button>
+          <button class="filter-btn" data-category="Warning">Warning</button>
+          <button class="filter-btn" data-category="Informational">Informational</button>
+        </div>
+      </div>
+
+      <div class="catalog-grid" id="catalog-grid">
+        <!-- Rendered dynamically from CSV metadata via dashboard.js -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>© 2026 TrafficSign.AI • Model Metrics & Analytics Dashboard</p>
+    </div>
+  </footer>
+
+  <!-- Dashboard JavaScript -->
+  <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>
